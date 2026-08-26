@@ -8,12 +8,21 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sora: ["Sora", "sans-serif"],
+        inter: ["Inter", "sans-serif"],
+      },
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        accent: "#ff6b4a",
+        "bg-dark": "#0e0e12",
+        "card-dark": "#16161c",
+      },
+      animation: {
+        "spin-slow": "spin 3s linear infinite",
       },
     },
   },
   plugins: [],
 };
+
 export default config;

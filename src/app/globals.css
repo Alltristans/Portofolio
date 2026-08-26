@@ -3,25 +3,211 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --accent: #ff6b4a;
+  --bg-dark: #0e0e12;
+  --bg-card-dark: #16161c;
+  --bg-card-dark2: #1c1c24;
+  --text-dark: #e8e8f0;
+  --muted-dark: #8888a0;
+  --border-dark: #2a2a38;
+
+  --bg-light: #f5f5f8;
+  --bg-card-light: #ffffff;
+  --bg-card-light2: #f0f0f5;
+  --text-light: #1a1a2e;
+  --muted-light: #666680;
+  --border-light: #e0e0ea;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter, 'Inter', sans-serif);
+  background-color: var(--bg-dark);
+  color: var(--text-dark);
+  transition: background-color 0.3s, color 0.3s;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+body.light {
+  background-color: var(--bg-light);
+  color: var(--text-light);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sora, 'Sora', sans-serif);
+}
+
+.accent { color: var(--accent); }
+.bg-accent { background-color: var(--accent); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0e0e12; }
+::-webkit-scrollbar-thumb { background: #ff6b4a66; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #ff6b4a; }
+
+/* Masonry */
+.masonry-grid {
+  columns: 2;
+  column-gap: 1rem;
+}
+@media (min-width: 768px) {
+  .masonry-grid { columns: 3; }
+}
+@media (min-width: 1024px) {
+  .masonry-grid { columns: 4; }
+}
+
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 1rem;
+}
+
+/* Progress bar animation */
+@keyframes progress-fill {
+  from { width: 0%; }
+  to { width: var(--progress); }
+}
+
+.progress-bar {
+  animation: progress-fill 1.2s ease-out forwards;
+  width: 0%;
+}
+
+/* Count-up */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ashley & Mathematical lines animation */
+@keyframes mil-move {
+  0% {
+    transform: translateY(-45px);
+  }
+  50% {
+    transform: translateY(45px);
+  }
+  100% {
+    transform: translateY(-45px);
   }
 }
+
+.mil-move {
+  animation: mil-move 14s ease-in-out infinite;
+}
+
+@keyframes math-wave {
+  0% {
+    transform: translateY(-25px) scaleY(0.95);
+  }
+  50% {
+    transform: translateY(25px) scaleY(1.05);
+  }
+  100% {
+    transform: translateY(-25px) scaleY(0.95);
+  }
+}
+
+@keyframes math-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes math-pulse {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.02);
+  }
+}
+
+.math-wave {
+  animation: math-wave 10s ease-in-out infinite;
+}
+
+.math-wave-alt {
+  animation: math-wave 14s ease-in-out infinite reverse;
+}
+
+.math-rotate-slow {
+  animation: math-rotate 40s linear infinite;
+}
+
+.math-pulse {
+  animation: math-pulse 6s ease-in-out infinite;
+}
+
+/* Infinite Marquee Ribbons (Original Portfolio Style) */
+@keyframes marquee-left {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-right {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+.animate-marquee-left {
+  display: flex;
+  width: max-content;
+  animation: marquee-left 42s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-right {
+  display: flex;
+  width: max-content;
+  animation: marquee-right 46s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-left-fast {
+  display: flex;
+  width: max-content;
+  animation: marquee-left 38s linear infinite;
+  will-change: transform;
+}
+
+.marquee-pause:hover .animate-marquee-left,
+.marquee-pause:hover .animate-marquee-right,
+.marquee-pause:hover .animate-marquee-left-fast {
+  animation-play-state: paused;
+}
+
+/* Vertical Marquee Ribbons (Alternating Sliding Cards in Drawer) */
+@keyframes marquee-up {
+  0% { transform: translateY(0%); }
+  100% { transform: translateY(-50%); }
+}
+
+@keyframes marquee-down {
+  0% { transform: translateY(-50%); }
+  100% { transform: translateY(0%); }
+}
+
+.animate-marquee-up {
+  animation: marquee-up 32s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-down {
+  animation: marquee-down 36s linear infinite;
+  will-change: transform;
+}
+
+.marquee-pause:hover .animate-marquee-up,
+.marquee-pause:hover .animate-marquee-down {
+  animation-play-state: paused;
+}
+
