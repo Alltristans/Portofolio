@@ -15,6 +15,8 @@ import {
   FolderOpen,
   Grid,
   Layers,
+  Play,
+  Pause,
 } from "lucide-react";
 import manifest from "@/data/manifest.json";
 
@@ -146,29 +148,6 @@ const STELLAR_NODES: StellarProject[] = [
     ],
     techStack: ["PyTorch", "Torchvision", "ResNet", "Grad-CAM", "Python", "Matplotlib"],
     linkUrl: "https://github.com/Alltristans/CIFAR-10-Image-Classification",
-    linkLabel: "View Repository",
-  },
-  {
-    id: "sidu-xai",
-    name: "SIDU Explainable AI & Saliency Method",
-    repoName: "SIDU_XAI_CODE",
-    constellation: "ai",
-    constellationLabel: "AI & Generative Models",
-    x: -2.0,
-    y: 1.9,
-    r: 1.15,
-    role: "XAI Researcher",
-    period: "2025",
-    impact: "Similarity, Difference, and Uniqueness saliency framework for transparent deep visual reasoning.",
-    summary:
-      "Implemented the SIDU (Similarity, Difference, and Uniqueness) explainable AI algorithm for visual model interpretability, calculating feature-mask importance across convolutional filters.",
-    architecture: [
-      "Extracted convolutional activation maps across bottleneck visual layers.",
-      "Calculated mask uniqueness and similarity metrics against prediction logits.",
-      "Generated faithful visual attribution heatmaps without gradient backpropagation artifacts.",
-    ],
-    techStack: ["PyTorch", "Explainable AI", "Computer Vision", "Python", "NumPy"],
-    linkUrl: "https://github.com/Alltristans/SIDU_XAI_CODE",
     linkLabel: "View Repository",
   },
 
@@ -451,29 +430,6 @@ const STELLAR_NODES: StellarProject[] = [
     linkUrl: "https://github.com/Alltristans/SherlockCipherGame",
     linkLabel: "View Repository",
   },
-  {
-    id: "playable-game-gen",
-    name: "Playable Lightweight Neural Game Generation",
-    repoName: "Playable-Game-Generation",
-    constellation: "games",
-    constellationLabel: "Game Systems & Cryptography",
-    x: 4.3,
-    y: -3.7,
-    r: 1.25,
-    role: "AI & Game Systems Engineer",
-    period: "2025",
-    impact: "Lightweight neural game generation framework running at 20 FPS on consumer hardware.",
-    summary:
-      "Explored neural game generation paradigms synthesizing game states, mechanics, and playability heuristics, achieving real-time interaction benchmarks on consumer RTX hardware.",
-    architecture: [
-      "Structured lightweight latent game state propagation network architectures.",
-      "Formulated playability evaluation heuristics verifying traversability and agent reachability.",
-      "Optimized inference pipelines for 20 FPS latency constraints on edge consumer GPUs.",
-    ],
-    techStack: ["PyTorch", "Deep Learning", "Game AI", "Real-Time Inference", "Python"],
-    linkUrl: "https://github.com/Alltristans/Playable-Game-Generation",
-    linkLabel: "View Repository",
-  },
 
   // ==================== CLUSTER 4: DATA PLATFORMS & AUTOMATION ====================
   {
@@ -636,9 +592,8 @@ const CONSTELLATION_LINKS: [string, string][] = [
   // AI Constellation Lines
   ["indonesian-llm", "sentinai-guard"],
   ["indonesian-llm", "stable-diffusion-pipe"],
-  ["sentinai-guard", "sidu-xai"],
+  ["sentinai-guard", "cifar10-vision"],
   ["stable-diffusion-pipe", "cifar10-vision"],
-  ["cifar10-vision", "sidu-xai"],
 
   // Math & SMT Constellation Lines
   ["robot-smt", "mental-health-ode"],
@@ -654,8 +609,7 @@ const CONSTELLATION_LINKS: [string, string][] = [
   ["escape-tw2", "spaceship-arcade"],
   ["ggj26-game", "stealth-cryptography"],
   ["stealth-cryptography", "sherlock-cipher"],
-  ["sherlock-cipher", "playable-game-gen"],
-  ["escape-tw2", "playable-game-gen"],
+  ["escape-tw2", "sherlock-cipher"],
 
   // Data & Automation Constellation Lines
   ["sync-talent", "analisis-gamifikasi"],
@@ -703,6 +657,30 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState<number>(1);
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [isOrbiting, setIsOrbiting] = useState<boolean>(true);
+
+  // Celestial Rotation & Dynamic Simulation Refs
+  const angleRef = useRef<number>(0);
+  const speedRef = useRef<number>(0.00014);
+  const currentAngleRef = useRef<number>(0);
+  const currentTimeRef = useRef<number>(0);
+  const isOrbitingRef = useRef<boolean>(true);
+  isOrbitingRef.current = isOrbiting;
+
+  const meteorsRef = useRef<
+    Array<{
+      x: number;
+      y: number;
+      dx: number;
+      dy: number;
+      len: number;
+      speed: number;
+      alpha: number;
+      life: number;
+      maxLife: number;
+    }>
+  >([]);
+
   const dragStartRef = useRef<{ x: number; y: number; panX: number; panY: number }>({
     x: 0,
     y: 0,
@@ -727,6 +705,23 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
     if (activeConstellation === "all") return STELLAR_NODES;
     return STELLAR_NODES.filter((n) => n.constellation === activeConstellation);
   }, [activeConstellation]);
+
+  // Dynamic Live Node Position Calculator (Rigid celestial rotation + organic zero-gravity breathing)
+  const getLiveNodeCoords = useCallback(
+    (node: StellarProject, angle: number, t: number): [number, number] => {
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      const rx = node.x * cos - node.y * sin;
+      const ry = node.x * sin + node.y * cos;
+
+      // Subtle organic stellar float
+      const wobbleX = Math.sin(t * 0.9 + (node.x + 10) * 2.3) * 0.035;
+      const wobbleY = Math.cos(t * 0.8 + (node.y + 10) * 1.9) * 0.035;
+
+      return [rx + wobbleX, ry + wobbleY];
+    },
+    []
+  );
 
   // Color lookup helper
   const getNodeColor = useCallback(
@@ -780,7 +775,7 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
   };
 
   // -------------------------------------------------------------
-  // CANVAS RENDER LOOP (Continuous Cosmic Animation)
+  // CANVAS RENDER LOOP (Continuous Cosmic Stellarium Animation)
   // -------------------------------------------------------------
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -790,6 +785,7 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
 
     let animationFrameId: number;
     const startTime = performance.now();
+    let lastFrameTime = performance.now();
 
     const handleResize = () => {
       if (!containerRef.current || !canvas) return;
@@ -805,6 +801,10 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
 
     const render = (time: number) => {
       const t = (time - startTime) * 0.001;
+      const now = performance.now();
+      const dt = Math.min(50, now - lastFrameTime);
+      lastFrameTime = now;
+
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) return;
 
@@ -822,42 +822,185 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
         return [cx + x * scale, cy - y * scale];
       };
 
-      // 1. Draw Deep Cosmic Grid Coordinate Rings
+      // Solar System Celestial Rotation Dynamics
+      let targetSpeed = 0;
+      if (isOrbitingRef.current && !isDragging && !hoveredNode && !selectedNode) {
+        targetSpeed = 0.00014; // ~0.008 rad/s calm, elegant celestial drift
+      } else if (isOrbitingRef.current && (hoveredNode || selectedNode)) {
+        targetSpeed = 0.000015; // ultra-slow gentle crawl when inspecting
+      } else {
+        targetSpeed = 0;
+      }
+
+      speedRef.current += (targetSpeed - speedRef.current) * 0.06;
+      angleRef.current += speedRef.current * dt;
+      const angle = angleRef.current;
+      currentAngleRef.current = angle;
+      currentTimeRef.current = t;
+
+      const [originX, originY] = toScreen(0, 0);
+
+      // 1. Deep Cosmic Nebula Atmosphere
+      const nebulae = [
+        { x: -3.5, y: 2.0, color: "155, 143, 255", r: 4.6 }, // AI (Purple)
+        { x: 3.5, y: 2.0, color: "255, 184, 0", r: 4.2 },   // Math (Gold)
+        { x: 3.0, y: -2.0, color: "0, 210, 180", r: 4.5 },  // Games (Teal)
+        { x: -3.0, y: -2.0, color: "56, 189, 248", r: 4.3 },// Data (Blue)
+        { x: 0.0, y: 0.0, color: "255, 107, 74", r: 3.8 },   // Center (Coral)
+      ];
+
+      nebulae.forEach((neb) => {
+        const cos = Math.cos(angle * 0.6);
+        const sin = Math.sin(angle * 0.6);
+        const nx = neb.x * cos - neb.y * sin;
+        const ny = neb.x * sin + neb.y * cos;
+        const [screenX, screenY] = toScreen(nx, ny);
+        const screenR = neb.r * scale;
+
+        ctx.save();
+        const grad = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, screenR);
+        grad.addColorStop(0, isDark ? `rgba(${neb.color}, 0.065)` : `rgba(${neb.color}, 0.035)`);
+        grad.addColorStop(0.6, isDark ? `rgba(${neb.color}, 0.02)` : `rgba(${neb.color}, 0.01)`);
+        grad.addColorStop(1, "rgba(0, 0, 0, 0)");
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, screenR, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // 2. Concentric Orbit Rings & Astrolabe Markings
+      const orbitRadii = [1.6, 3.2, 4.8, 6.4, 8.0];
+      orbitRadii.forEach((r, idx) => {
+        ctx.save();
+        ctx.strokeStyle = isDark
+          ? `rgba(255, 255, 255, ${0.035 + (idx % 2) * 0.015})`
+          : `rgba(0, 0, 0, ${0.035 + (idx % 2) * 0.015})`;
+        ctx.lineWidth = 1;
+        ctx.setLineDash(idx % 2 === 0 ? [4, 6] : [2, 5]);
+        ctx.lineDashOffset = -t * (idx % 2 === 0 ? 4 : -3);
+        ctx.beginPath();
+        ctx.arc(originX, originY, r * scale, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Astrolabe degree ticks on orbit rings
+        if (idx === 2 || idx === 3) {
+          const tickCount = 8;
+          for (let k = 0; k < tickCount; k++) {
+            const tickAngle = angle + (k * Math.PI * 2) / tickCount;
+            const tx1 = originX + Math.cos(tickAngle) * (r * scale - 4);
+            const ty1 = originY + Math.sin(tickAngle) * (r * scale - 4);
+            const tx2 = originX + Math.cos(tickAngle) * (r * scale + 4);
+            const ty2 = originY + Math.sin(tickAngle) * (r * scale + 4);
+            ctx.beginPath();
+            ctx.moveTo(tx1, ty1);
+            ctx.lineTo(tx2, ty2);
+            ctx.stroke();
+
+            if (idx === 3 && zoom >= 0.85) {
+              ctx.font = "9px monospace";
+              ctx.fillStyle = isDark ? "rgba(255, 255, 255, 0.28)" : "rgba(0, 0, 0, 0.28)";
+              ctx.textAlign = "center";
+              ctx.textBaseline = "middle";
+              const deg = Math.round((k * 360) / tickCount);
+              const labelX = originX + Math.cos(tickAngle) * (r * scale + 13);
+              const labelY = originY + Math.sin(tickAngle) * (r * scale + 13);
+              ctx.fillText(`${deg}°`, labelX, labelY);
+            }
+          }
+        }
+        ctx.restore();
+      });
+
+      // Rotating Celestial Axis Crosshairs
       ctx.save();
       ctx.strokeStyle = isDark ? "rgba(255, 255, 255, 0.04)" : "rgba(0, 0, 0, 0.04)";
       ctx.lineWidth = 1;
-      [1.5, 3.2, 5.0, 7.0].forEach((r) => {
-        ctx.beginPath();
-        ctx.arc(cx, cy, r * scale, 0, Math.PI * 2);
-        ctx.stroke();
-      });
-
-      // Axis Crosshairs
+      ctx.setLineDash([3, 5]);
+      const axisLen = 9.0 * scale;
+      const cosA = Math.cos(angle);
+      const sinA = Math.sin(angle);
       ctx.beginPath();
-      ctx.moveTo(cx - 8.5 * scale, cy);
-      ctx.lineTo(cx + 8.5 * scale, cy);
-      ctx.moveTo(cx, cy - 6 * scale);
-      ctx.lineTo(cx, cy + 6 * scale);
+      ctx.moveTo(originX - axisLen * cosA, originY - axisLen * sinA);
+      ctx.lineTo(originX + axisLen * cosA, originY + axisLen * sinA);
+      ctx.moveTo(originX + axisLen * sinA, originY - axisLen * cosA);
+      ctx.lineTo(originX - axisLen * sinA, originY + axisLen * cosA);
       ctx.stroke();
       ctx.restore();
 
-      // 2. Draw Twinkling Background Stars
+      // 3. Draw Twinkling Background Stars (with gentle parallax)
       backgroundStars.forEach((star) => {
-        const [sx, sy] = toScreen(star.x, star.y);
+        const cos = Math.cos(angle * 0.15);
+        const sin = Math.sin(angle * 0.15);
+        const sxRot = star.x * cos - star.y * sin;
+        const syRot = star.x * sin + star.y * cos;
+        const [sx, sy] = toScreen(sxRot, syRot);
+
         if (sx < -20 || sx > width + 20 || sy < -20 || sy > height + 20) return;
 
         const twinkle = Math.sin(t * star.speed + star.phase);
-        const alpha = Math.max(0.08, star.brightness + twinkle * 0.25);
+        const alpha = Math.max(0.08, star.brightness + twinkle * 0.28);
 
         ctx.fillStyle = isDark
-          ? `rgba(255, 255, 255, ${alpha * 0.8})`
-          : `rgba(40, 40, 60, ${alpha * 0.5})`;
+          ? `rgba(255, 255, 255, ${alpha * 0.85})`
+          : `rgba(40, 40, 60, ${alpha * 0.55})`;
         ctx.beginPath();
         ctx.arc(sx, sy, star.size, 0, Math.PI * 2);
         ctx.fill();
       });
 
-      // 3. Draw Constellation Interconnection Lines
+      // 5. Update & Draw Shooting Stars (Meteors)
+      if (meteorsRef.current.length < 2 && Math.random() < 0.015) {
+        const spawnAngle = -Math.PI * (0.6 + Math.random() * 0.25);
+        const spd = 8 + Math.random() * 7;
+        meteorsRef.current.push({
+          x: (Math.random() - 0.5) * 16,
+          y: 3.5 + Math.random() * 2,
+          dx: Math.cos(spawnAngle) * spd,
+          dy: Math.sin(spawnAngle) * spd,
+          len: 1.5 + Math.random() * 1.8,
+          speed: spd,
+          alpha: 1,
+          life: 0,
+          maxLife: 0.7 + Math.random() * 0.6,
+        });
+      }
+
+      meteorsRef.current.forEach((m) => {
+        m.life += dt * 0.001;
+        m.x += m.dx * (dt * 0.001);
+        m.y += m.dy * (dt * 0.001);
+        const progress = m.life / m.maxLife;
+        m.alpha = Math.max(0, 1 - progress);
+
+        const [hx, hy] = toScreen(m.x, m.y);
+        const [tx, ty] = toScreen(m.x - (m.dx / m.speed) * m.len, m.y - (m.dy / m.speed) * m.len);
+
+        if (hx > -50 && hx < width + 50 && hy > -50 && hy < height + 50) {
+          ctx.save();
+          const meteorGrad = ctx.createLinearGradient(tx, ty, hx, hy);
+          meteorGrad.addColorStop(0, "rgba(255, 255, 255, 0)");
+          meteorGrad.addColorStop(0.7, isDark ? `rgba(255, 180, 120, ${m.alpha * 0.5})` : `rgba(255, 107, 74, ${m.alpha * 0.4})`);
+          meteorGrad.addColorStop(1, isDark ? `rgba(255, 255, 255, ${m.alpha * 0.95})` : `rgba(255, 107, 74, ${m.alpha * 0.9})`);
+
+          ctx.strokeStyle = meteorGrad;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(tx, ty);
+          ctx.lineTo(hx, hy);
+          ctx.stroke();
+
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(hx, hy, 1.8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      });
+      meteorsRef.current = meteorsRef.current.filter((m) => m.life < m.maxLife);
+
+      // 6. Draw Constellation Interconnection Lines & Energy Bridges
       CONSTELLATION_LINKS.forEach(([fromId, toId]) => {
         const fromNode = STELLAR_NODES.find((n) => n.id === fromId);
         const toNode = STELLAR_NODES.find((n) => n.id === toId);
@@ -872,20 +1015,24 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
           fromNode.constellation !== activeConstellation &&
           toNode.constellation !== activeConstellation;
 
-        const [x1, y1] = toScreen(fromNode.x, fromNode.y);
-        const [x2, y2] = toScreen(toNode.x, toNode.y);
+        const [nx1, ny1] = getLiveNodeCoords(fromNode, angle, t);
+        const [nx2, ny2] = getLiveNodeCoords(toNode, angle, t);
+        const [x1, y1] = toScreen(nx1, ny1);
+        const [x2, y2] = toScreen(nx2, ny2);
 
         ctx.save();
         if (isHighlighted) {
-          ctx.strokeStyle = isDark ? "rgba(255, 107, 74, 0.85)" : "rgba(255, 107, 74, 0.95)";
-          ctx.lineWidth = 2.0;
+          ctx.strokeStyle = isDark ? "rgba(255, 107, 74, 0.9)" : "rgba(255, 107, 74, 0.95)";
+          ctx.lineWidth = 2.2;
+          ctx.shadowColor = "#ff6b4a";
+          ctx.shadowBlur = 8;
           ctx.setLineDash([]);
         } else if (isDimmed) {
           ctx.strokeStyle = isDark ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.02)";
           ctx.lineWidth = 0.8;
           ctx.setLineDash([3, 5]);
         } else {
-          ctx.strokeStyle = isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.1)";
+          ctx.strokeStyle = isDark ? "rgba(255, 255, 255, 0.14)" : "rgba(0, 0, 0, 0.12)";
           ctx.lineWidth = 1.1;
           ctx.setLineDash([2, 4]);
         }
@@ -894,60 +1041,124 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
         ctx.stroke();
-
-        // Energy pulse packet on hover
-        if (isHighlighted) {
-          const pulseProgress = (t * 0.8) % 1;
-          const px = x1 + (x2 - x1) * pulseProgress;
-          const py = y1 + (y2 - y1) * pulseProgress;
-          ctx.fillStyle = "#ff6b4a";
-          ctx.beginPath();
-          ctx.arc(px, py, 3.5, 0, Math.PI * 2);
-          ctx.fill();
-        }
         ctx.restore();
+
+        // Constellation photon wave / energy pulse packet
+        if (!isDimmed) {
+          ctx.save();
+          const pulseSpeed = isHighlighted ? 1.2 : 0.28;
+          const pulseOffset = (t * pulseSpeed + Math.abs(fromNode.x) * 1.5) % 1;
+          const px = x1 + (x2 - x1) * pulseOffset;
+          const py = y1 + (y2 - y1) * pulseOffset;
+
+          const pulseColor = isHighlighted
+            ? "#ff6b4a"
+            : getNodeColor(fromNode.constellation);
+
+          ctx.fillStyle = pulseColor;
+          ctx.shadowColor = pulseColor;
+          ctx.shadowBlur = isHighlighted ? 8 : 3;
+
+          ctx.beginPath();
+          ctx.arc(px, py, isHighlighted ? 3.5 : 1.8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
       });
 
-      // 4. Draw Project Star Nodes
+      // 7. Draw Project Star Nodes
       STELLAR_NODES.forEach((node) => {
-        const [sx, sy] = toScreen(node.x, node.y);
+        const [nx, ny] = getLiveNodeCoords(node, angle, t);
+        const [sx, sy] = toScreen(nx, ny);
         const isHovered = hoveredNode?.id === node.id;
         const isSelected = selectedNode?.id === node.id;
         const isMatchingFilter =
           activeConstellation === "all" || node.constellation === activeConstellation;
 
         const color = getNodeColor(node.constellation);
-        const radius = (node.r * 5.5 + (isHovered || isSelected ? 4 : 0)) * (zoom < 0.85 ? 0.9 : 1);
+        const baseRadius = node.r * 5.5 * (zoom < 0.85 ? 0.9 : 1);
+        const pulse = Math.sin(t * 2.8 + Math.abs(node.x) * 4) * 0.7;
+        const radius = baseRadius + (isHovered || isSelected ? 4 : pulse);
 
         ctx.save();
-        ctx.globalAlpha = isMatchingFilter ? 1 : 0.18;
+        ctx.globalAlpha = isMatchingFilter ? 1 : 0.15;
 
-        // Outer Glow Rings ONLY for Hovered or Selected (uniform across all projects)
+        // 1. Multi-tier Corona / Halo
+        const haloRadius = radius * (isHovered || isSelected ? 3.0 : 1.9);
+        const haloGrad = ctx.createRadialGradient(sx, sy, radius * 0.4, sx, sy, haloRadius);
+        haloGrad.addColorStop(0, color);
+        haloGrad.addColorStop(0.4, isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)");
+        haloGrad.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = haloGrad;
+        ctx.beginPath();
+        ctx.arc(sx, sy, haloRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 2. Telescope Diffraction Spikes for prominent stars (r >= 1.2)
+        if (node.r >= 1.2 && isMatchingFilter) {
+          const spikeLen = radius + 8 + (isHovered || isSelected ? 6 : 0);
+          ctx.save();
+          ctx.strokeStyle = isDark ? "rgba(255, 255, 255, 0.4)" : "rgba(40, 40, 60, 0.3)";
+          ctx.lineWidth = 0.75;
+          ctx.beginPath();
+          ctx.moveTo(sx - spikeLen, sy);
+          ctx.lineTo(sx + spikeLen, sy);
+          ctx.moveTo(sx, sy - spikeLen);
+          ctx.lineTo(sx, sy + spikeLen);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 3. Orbiting Micro-Moons / Satellites for major node anchors (r >= 1.35)
+        if (node.r >= 1.35 && isMatchingFilter) {
+          const moonOrbitR = radius + 9;
+          const moonAngle = t * 2.2 + node.x * 2;
+          const mx = sx + Math.cos(moonAngle) * moonOrbitR;
+          const my = sy + Math.sin(moonAngle) * (moonOrbitR * 0.55);
+
+          ctx.save();
+          ctx.strokeStyle = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)";
+          ctx.lineWidth = 0.6;
+          ctx.beginPath();
+          ctx.ellipse(sx, sy, moonOrbitR, moonOrbitR * 0.55, 0, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.fillStyle = isDark ? "#ffffff" : color;
+          ctx.beginPath();
+          ctx.arc(mx, my, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // 4. Hovered / Selected Outer Active Pulse Ring
         if (isHovered || isSelected) {
-          const glowPulse = Math.sin(t * 3 + node.x) * 4;
+          const glowPulse = Math.sin(t * 3.5 + node.x) * 4;
           ctx.strokeStyle = color;
-          ctx.lineWidth = 1.2;
-          ctx.setLineDash([]);
+          ctx.lineWidth = 1.3;
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 10;
           ctx.beginPath();
           ctx.arc(sx, sy, radius + 8 + glowPulse, 0, Math.PI * 2);
           ctx.stroke();
         }
 
-        // Inner Star Core
+        // 5. Inner Star Core
         ctx.fillStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = isHovered || isSelected ? 12 : 6;
         ctx.beginPath();
         ctx.arc(sx, sy, radius, 0, Math.PI * 2);
         ctx.fill();
 
-        // Star Center Spark
+        // 6. Star Center Spark (White Core)
         ctx.fillStyle = "#ffffff";
         ctx.beginPath();
-        ctx.arc(sx, sy, radius * 0.4, 0, Math.PI * 2);
+        ctx.arc(sx, sy, radius * 0.38, 0, Math.PI * 2);
         ctx.fill();
 
-        // Star Label
+        // 7. Star Label
         if (zoom >= 0.75 || isHovered || isSelected) {
-          ctx.font = "11px monospace";
+          ctx.font = isHovered || isSelected ? "bold 11px monospace" : "11px monospace";
           ctx.textAlign = "center";
           ctx.fillStyle = isDark
             ? isHovered || isSelected
@@ -956,7 +1167,7 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
             : isHovered || isSelected
             ? "#000000"
             : "rgba(30, 30, 45, 0.85)";
-          ctx.fillText(node.name, sx, sy + radius + 11);
+          ctx.fillText(node.name, sx, sy + radius + 12);
         }
 
         ctx.restore();
@@ -971,10 +1182,10 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", handleResize);
     };
-  }, [pan, zoom, isDark, backgroundStars, hoveredNode, selectedNode, activeConstellation, getNodeColor]);
+  }, [pan, zoom, isDark, backgroundStars, hoveredNode, selectedNode, activeConstellation, getNodeColor, getLiveNodeCoords, isDragging]);
 
   // -------------------------------------------------------------
-  // POINTER INTERACTION (Pan Drag & Click)
+  // POINTER INTERACTION (Pan Drag & Click with Dynamic Live Coordinates)
   // -------------------------------------------------------------
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     setIsDragging(true);
@@ -1000,7 +1211,7 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
       return;
     }
 
-    // Raycasting to find hovered node
+    // Raycasting with live transformed coordinates
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
@@ -1012,13 +1223,17 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
     const cx = width / 2 + pan.x;
     const cy = height / 2 + pan.y;
 
+    const angle = currentAngleRef.current;
+    const t = currentTimeRef.current;
+
     let found: StellarProject | null = null;
 
     for (const node of filteredNodes) {
-      const sx = cx + node.x * scale;
-      const sy = cy - node.y * scale;
+      const [nx, ny] = getLiveNodeCoords(node, angle, t);
+      const sx = cx + nx * scale;
+      const sy = cy - ny * scale;
       const dist = Math.hypot(mouseX - sx, mouseY - sy);
-      const hitRadius = Math.max(20, node.r * 6.5 * zoom + 12);
+      const hitRadius = Math.max(22, node.r * 6.5 * zoom + 14);
 
       if (dist <= hitRadius) {
         found = node;
@@ -1055,6 +1270,7 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
     setZoom(1);
     setActiveConstellation("all");
     setSelectedNode(null);
+    angleRef.current = 0;
   };
 
   const nextProject = () => {
@@ -1095,7 +1311,7 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
               isDark ? "text-[#9999b0]" : "text-gray-600"
             }`}
           >
-            Unified Stellarium universe charting 20 Systems & Games, 32 Artworks, and 62 Photographs. Pan across space and select any celestial node to explore.
+            Unified Stellarium universe charting 21 Systems & Games, 32 Artworks, and 62 Photographs. Pan across space and select any celestial node to explore.
           </p>
         </div>
 
@@ -1172,7 +1388,7 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
             <span className="text-[#ff6b4a] font-bold">{(zoom * 100).toFixed(0)}%</span>
             <span className="mx-1.5">|</span>
             <span>SYSTEMS: </span>
-            <span className="text-[#00D2B4] font-bold">20</span>
+            <span className="text-[#00D2B4] font-bold">21</span>
             <span className="mx-1.5">|</span>
             <span>ARTS: </span>
             <span className="text-[#FF7EB6] font-bold">32</span>
@@ -1183,7 +1399,7 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
         </div>
 
         {/* Stellarium Controls (Bottom-Left) */}
-        <div className="absolute bottom-6 left-6 sm:left-10 z-10 flex items-center gap-2 font-mono">
+        <div className="absolute bottom-6 left-6 sm:left-10 z-10 flex flex-wrap items-center gap-2 font-mono">
           <button
             onClick={() => setZoom((z) => Math.min(2.2, z * 1.15))}
             className={`w-8 h-8 rounded-lg border flex items-center justify-center transition-all cursor-pointer ${
@@ -1206,8 +1422,24 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
           >
             −
           </button>
+          <button
+            onClick={() => setIsOrbiting((prev) => !prev)}
+            className={`px-2.5 py-1.5 h-8 rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer text-[11px] ${
+              isOrbiting
+                ? isDark
+                  ? "bg-[#ff6b4a]/15 border-[#ff6b4a]/50 text-[#ff6b4a]"
+                  : "bg-[#ff6b4a]/10 border-[#ff6b4a]/40 text-[#ff6b4a]"
+                : isDark
+                ? "bg-[#0b0c16]/85 border-[#22243a] text-[#8888a6] hover:text-white"
+                : "bg-white/85 border-[#d8d5ca] text-gray-500 hover:text-black"
+            }`}
+            title={isOrbiting ? "Pause Solar Rotation" : "Resume Solar Rotation"}
+          >
+            {isOrbiting ? <Pause size={12} /> : <Play size={12} />}
+            <span>{isOrbiting ? "Orbit Active" : "Orbit Paused"}</span>
+          </button>
           <span
-            className={`text-[11px] px-2.5 py-1.5 rounded-lg border backdrop-blur-md ${
+            className={`text-[11px] px-2.5 py-1.5 h-8 flex items-center rounded-lg border backdrop-blur-md ${
               isDark
                 ? "bg-[#0b0c16]/85 border-[#22243a] text-[#77778c]"
                 : "bg-white/85 border-[#d8d5ca] text-gray-500"
