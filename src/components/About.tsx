@@ -65,12 +65,12 @@ export default function About({ theme }: { theme: "dark" | "light" }) {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
-              I am a Mathematics undergraduate at{" "}
+              I am a Mathematics graduate from{" "}
               <strong className={isDark ? "text-white" : "text-black"}>
                 Institut Teknologi Sepuluh Nopember (ITS)
               </strong>
               , specializing in mathematical optimization, stochastic models, and simulation systems.
-              My research focuses on optimizing resource-flow balance in agent-based economic systems using Genetic Algorithms.
+              My research focused on optimizing resource-flow balance in agent-based economic systems using Genetic Algorithms.
             </motion.p>
 
             {/* Paragraph 2 */}
@@ -83,9 +83,9 @@ export default function About({ theme }: { theme: "dark" | "light" }) {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Beyond theory, I apply analytical rigor in production: analyzing learner behavior and LMS gamification at{" "}
+              Beyond theory, I apply analytical modeling in production: analyzing user behavior and platform metrics at{" "}
               <strong className={isDark ? "text-white" : "text-black"}>SEVIMA</strong>, designing procedural mechanics at{" "}
-              <strong className={isDark ? "text-white" : "text-black"}>Ganesha Interactive Media</strong>, and crafting digital illustrations and UI/UX prototypes.
+              <strong className={isDark ? "text-white" : "text-black"}>Ganesha Interactive Media</strong>, and developing functional digital tools and visual systems.
             </motion.p>
 
             {/* Quote Block (Ashley Template Signature mil-about-quote) */}

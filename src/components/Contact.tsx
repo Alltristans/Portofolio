@@ -73,11 +73,10 @@ export default function Contact({ theme }: { theme: "dark" | "light" }) {
             viewport={{ once: true }}
           >
             <h3 className={`font-sora font-bold text-2xl mb-4 ${isDark ? "text-white" : "text-[#1a1a2e]"}`}>
-              Let&apos;s Build Something Great
+              Direct Inquiries &amp; Work
             </h3>
             <p className={`text-sm leading-relaxed mb-8 ${isDark ? "text-[#8888a0]" : "text-gray-500"}`}>
-              I&apos;m open to freelance projects, collaborations, and interesting opportunities.
-              Whether you have a data problem, need a creative solution, or just want to say hi — reach out!
+              Available for data science, optimization modeling, software development, and technical consulting. Send your project details or questions through this form, or contact me directly by email.
             </p>
 
             <div className="space-y-4 mb-8">
