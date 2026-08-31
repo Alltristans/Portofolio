@@ -69,8 +69,8 @@ export default function About({ theme }: { theme: "dark" | "light" }) {
               <strong className={isDark ? "text-white" : "text-black"}>
                 Institut Teknologi Sepuluh Nopember (ITS)
               </strong>
-              , specializing in mathematical optimization, stochastic modeling, and agent-based simulation systems.
-              My research focused on optimizing resource-flow balance in complex economic simulations using Genetic Algorithms.
+              , specializing in mathematical optimization &amp; algorithms, agent-based simulations &amp; stochastic modeling, applied machine learning &amp; data science, and game mechanic design.
+              My research focused on optimizing resource-flow balance in complex game economic simulations using Genetic Algorithms.
             </motion.p>
 
             {/* Paragraph 2 */}
