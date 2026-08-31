@@ -161,7 +161,7 @@ export default function About({ theme }: { theme: "dark" | "light" }) {
           {/* ================= RIGHT COLUMN: Ashley Photo Frame & Math Vector ================= */}
           <motion.div
             style={{ y: rightColumnY }}
-            className="w-full lg:w-[44%] xl:w-[42%] relative"
+            className="hidden lg:block w-full lg:w-[44%] xl:w-[42%] relative"
             initial={{ opacity: 0, scale: 0.96 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}

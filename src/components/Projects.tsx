@@ -681,12 +681,27 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
     }>
   >([]);
 
-  const dragStartRef = useRef<{ x: number; y: number; panX: number; panY: number }>({
+  const dragStartRef = useRef<{
+    x: number;
+    y: number;
+    panX: number;
+    panY: number;
+    startTime: number;
+    initialNode: StellarProject | null;
+    hasMoved: boolean;
+  }>({
     x: 0,
     y: 0,
     panX: 0,
     panY: 0,
+    startTime: 0,
+    initialNode: null,
+    hasMoved: false,
   });
+
+  const activePointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchStartDistRef = useRef<number | null>(null);
+  const pinchStartZoomRef = useRef<number>(1);
 
   // Background random twinkle stars
   const backgroundStars = useMemo(() => {
@@ -1184,84 +1199,181 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
     };
   }, [pan, zoom, isDark, backgroundStars, hoveredNode, selectedNode, activeConstellation, getNodeColor, getLiveNodeCoords, isDragging]);
 
+  // Raycasting node hit tester with live coordinates & generous mobile touch radius
+  const findNodeAt = useCallback(
+    (clientX: number, clientY: number): StellarProject | null => {
+      const canvas = canvasRef.current;
+      if (!canvas) return null;
+
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = clientX - rect.left;
+      const mouseY = clientY - rect.top;
+
+      const width = rect.width;
+      const height = rect.height;
+      const baseScale = Math.min(width, height) / 10.5;
+      const scale = baseScale * zoom;
+      const cx = width / 2 + pan.x;
+      const cy = height / 2 + pan.y;
+
+      const angle = currentAngleRef.current;
+      const t = currentTimeRef.current;
+
+      // 1. Search in active filtered constellation nodes first
+      for (const node of filteredNodes) {
+        const [nx, ny] = getLiveNodeCoords(node, angle, t);
+        const sx = cx + nx * scale;
+        const sy = cy - ny * scale;
+        const dist = Math.hypot(mouseX - sx, mouseY - sy);
+        // Generous touch hit radius for fingers on mobile & accuracy for pointer
+        const hitRadius = Math.max(28, node.r * 7.5 * zoom + 18);
+
+        if (dist <= hitRadius) {
+          return node;
+        }
+      }
+
+      // 2. Fallback: check all nodes if not matched in active filter
+      for (const node of STELLAR_NODES) {
+        const [nx, ny] = getLiveNodeCoords(node, angle, t);
+        const sx = cx + nx * scale;
+        const sy = cy - ny * scale;
+        const dist = Math.hypot(mouseX - sx, mouseY - sy);
+        const hitRadius = Math.max(28, node.r * 7.5 * zoom + 18);
+
+        if (dist <= hitRadius) {
+          return node;
+        }
+      }
+
+      return null;
+    },
+    [filteredNodes, getLiveNodeCoords, pan.x, pan.y, zoom]
+  );
+
   // -------------------------------------------------------------
-  // POINTER INTERACTION (Pan Drag & Click with Dynamic Live Coordinates)
+  // POINTER INTERACTION (Pan Drag, Multi-touch Pinch & Tap Selection)
   // -------------------------------------------------------------
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    setIsDragging(true);
-    dragStartRef.current = {
-      x: e.clientX,
-      y: e.clientY,
-      panX: pan.x,
-      panY: pan.y,
-    };
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {}
+
+    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (activePointersRef.current.size === 1) {
+      const nodeAtTouch = findNodeAt(e.clientX, e.clientY);
+      setIsDragging(true);
+      dragStartRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        panX: pan.x,
+        panY: pan.y,
+        startTime: performance.now(),
+        initialNode: nodeAtTouch,
+        hasMoved: false,
+      };
+    } else if (activePointersRef.current.size === 2) {
+      // Two fingers: initialize pinch-to-zoom
+      const points = Array.from(activePointersRef.current.values());
+      pinchStartDistRef.current = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+      pinchStartZoomRef.current = zoom;
+    }
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    if (isDragging) {
-      const dx = e.clientX - dragStartRef.current.x;
-      const dy = e.clientY - dragStartRef.current.y;
-      setPan({
-        x: dragStartRef.current.panX + dx,
-        y: dragStartRef.current.panY + dy,
-      });
+    if (activePointersRef.current.has(e.pointerId)) {
+      activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+
+    // 1. Multi-touch Pinch to Zoom
+    if (activePointersRef.current.size === 2 && pinchStartDistRef.current) {
+      const points = Array.from(activePointersRef.current.values());
+      const dist = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+      const ratio = dist / pinchStartDistRef.current;
+      const newZoom = Math.min(2.5, Math.max(0.55, pinchStartZoomRef.current * ratio));
+      setZoom(newZoom);
       return;
     }
 
-    // Raycasting with live transformed coordinates
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    // 2. Camera Drag / Pan
+    if (isDragging && activePointersRef.current.size === 1) {
+      const dx = e.clientX - dragStartRef.current.x;
+      const dy = e.clientY - dragStartRef.current.y;
+      const dist = Math.hypot(dx, dy);
 
-    const width = rect.width;
-    const height = rect.height;
-    const baseScale = Math.min(width, height) / 10.5;
-    const scale = baseScale * zoom;
-    const cx = width / 2 + pan.x;
-    const cy = height / 2 + pan.y;
-
-    const angle = currentAngleRef.current;
-    const t = currentTimeRef.current;
-
-    let found: StellarProject | null = null;
-
-    for (const node of filteredNodes) {
-      const [nx, ny] = getLiveNodeCoords(node, angle, t);
-      const sx = cx + nx * scale;
-      const sy = cy - ny * scale;
-      const dist = Math.hypot(mouseX - sx, mouseY - sy);
-      const hitRadius = Math.max(22, node.r * 6.5 * zoom + 14);
-
-      if (dist <= hitRadius) {
-        found = node;
-        break;
+      if (dist > 6) {
+        dragStartRef.current.hasMoved = true;
+        if (hoveredNode) {
+          setHoveredNode(null);
+          setTooltipPos(null);
+        }
       }
+
+      if (dragStartRef.current.hasMoved) {
+        setPan({
+          x: dragStartRef.current.panX + dx,
+          y: dragStartRef.current.panY + dy,
+        });
+      }
+      return;
     }
 
-    if (found) {
-      setHoveredNode(found);
-      setTooltipPos({ x: e.clientX, y: e.clientY });
-      canvas.style.cursor = "pointer";
-    } else {
-      setHoveredNode(null);
-      setTooltipPos(null);
-      canvas.style.cursor = isDragging ? "grabbing" : "grab";
+    // 3. Desktop Mouse Hover Raycasting
+    if (e.pointerType === "mouse") {
+      const found = findNodeAt(e.clientX, e.clientY);
+      if (found) {
+        setHoveredNode(found);
+        setTooltipPos({ x: e.clientX, y: e.clientY });
+        canvas.style.cursor = "pointer";
+      } else {
+        setHoveredNode(null);
+        setTooltipPos(null);
+        canvas.style.cursor = isDragging ? "grabbing" : "grab";
+      }
     }
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isDragging) return;
-    setIsDragging(false);
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
 
-    // Treat as click if dragged under threshold
-    const dx = Math.abs(e.clientX - dragStartRef.current.x);
-    const dy = Math.abs(e.clientY - dragStartRef.current.y);
+    activePointersRef.current.delete(e.pointerId);
+    if (activePointersRef.current.size < 2) {
+      pinchStartDistRef.current = null;
+    }
 
-    if (dx < 5 && dy < 5 && hoveredNode) {
-      setSelectedNode(hoveredNode);
+    if (activePointersRef.current.size === 0) {
+      setIsDragging(false);
+
+      const dx = e.clientX - dragStartRef.current.x;
+      const dy = e.clientY - dragStartRef.current.y;
+      const dist = Math.hypot(dx, dy);
+      const elapsed = performance.now() - dragStartRef.current.startTime;
+
+      // Tap / Click detection: small motion (< 15px) and fast tap (< 650ms)
+      if (dist < 15 && elapsed < 650 && !dragStartRef.current.hasMoved) {
+        const hitNode = findNodeAt(e.clientX, e.clientY) || dragStartRef.current.initialNode;
+        if (hitNode) {
+          setSelectedNode(hitNode);
+          setHoveredNode(null);
+          setTooltipPos(null);
+        }
+      }
+    }
+  };
+
+  const handlePointerCancel = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+    activePointersRef.current.delete(e.pointerId);
+    if (activePointersRef.current.size === 0) {
+      setIsDragging(false);
     }
   };
 
@@ -1372,7 +1484,9 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
-          className="w-full h-full block"
+          onPointerCancel={handlePointerCancel}
+          style={{ touchAction: "none" }}
+          className="w-full h-full block touch-none cursor-grab active:cursor-grabbing"
         />
 
         {/* Stellarium HUD Overlay (Top-Left) */}
@@ -1445,7 +1559,7 @@ export default function Projects({ theme }: { theme: "dark" | "light" }) {
                 : "bg-white/85 border-[#d8d5ca] text-gray-500"
             }`}
           >
-            DRAG TO PAN · CLICK STAR TO INSPECT
+            DRAG TO PAN · TAP / CLICK STAR TO INSPECT
           </span>
         </div>
 
