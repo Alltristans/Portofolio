@@ -69,8 +69,8 @@ export default function About({ theme }: { theme: "dark" | "light" }) {
               <strong className={isDark ? "text-white" : "text-black"}>
                 Institut Teknologi Sepuluh Nopember (ITS)
               </strong>
-              , specializing in mathematical optimization, stochastic models, and simulation systems.
-              My research focused on optimizing resource-flow balance in agent-based economic systems using Genetic Algorithms.
+              , specializing in mathematical optimization, stochastic modeling, and agent-based simulation systems.
+              My research focused on optimizing resource-flow balance in complex economic simulations using Genetic Algorithms.
             </motion.p>
 
             {/* Paragraph 2 */}
@@ -84,7 +84,7 @@ export default function About({ theme }: { theme: "dark" | "light" }) {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               Beyond theory, I apply analytical modeling in production: analyzing user behavior and platform metrics at{" "}
-              <strong className={isDark ? "text-white" : "text-black"}>SEVIMA</strong>, designing procedural mechanics at{" "}
+              <strong className={isDark ? "text-white" : "text-black"}>SEVIMA</strong>, designing procedural mechanics and in-game economies at{" "}
               <strong className={isDark ? "text-white" : "text-black"}>Ganesha Interactive Media</strong>, and developing functional digital tools and visual systems.
             </motion.p>
 
