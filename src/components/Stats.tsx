@@ -52,11 +52,11 @@ export default function Stats({ theme }: { theme: "dark" | "light" }) {
     {
       index: "02",
       tag: "INDUSTRY & RESEARCH ROLES",
-      value: 5,
+      value: 6,
       suffix: "+",
       title: "Experiences",
-      description: "Professional industry and research roles across LMS data analytics at SEVIMA, UI/UX systems at Digistar Telkom, game engineering at GIM, and tech mentoring.",
-      meta: "SEVIMA · Telkom · GIM · LevelUp",
+      description: "Professional industry and research roles across QA automation at CIMB Niaga, LMS data analytics at SEVIMA, UI/UX systems at Digistar Telkom, and game engineering at GIM.",
+      meta: "CIMB Niaga · SEVIMA · Telkom · GIM",
       href: "#experience",
     },
     {

@@ -17,8 +17,36 @@ interface ExperienceItem {
 
 const experiences: ExperienceItem[] = [
   {
-    id: "sevima",
+    id: "cimb-niaga",
     num: "01",
+    role: "QA Automation Engineer",
+    company: "PT Bank CIMB Niaga Tbk.",
+    period: "Sep 2026 – Present",
+    location: "Jakarta, Indonesia",
+    summary:
+      "Conducting comprehensive quality assurance testing, SIT/UAT execution, and test automation for enterprise banking applications.",
+    bullets: [
+      "Conducting comprehensive application testing processes.",
+      "Ensuring that business units approve of and are satisfied with the testing results.",
+      "Performing other specific tasks as assigned by the direct supervisor (special assignments).",
+      "Providing guidance and technical support to business units regarding the scope of the applications being tested.",
+      "Preparing project documentation required for testing and development purposes.",
+      "Executing System Integration Tests (SIT) and supporting User Acceptance Testing (UAT) processes for projects.",
+      "Creating test progress reports for all ongoing projects.",
+      "Coordinating with relevant stakeholders to ensure the smooth execution of testing phases.",
+    ],
+    skills: [
+      "QA Automation",
+      "System Integration Testing (SIT)",
+      "User Acceptance Testing (UAT)",
+      "Test Documentation",
+      "Test Progress Reporting",
+      "Stakeholder Coordination",
+    ],
+  },
+  {
+    id: "sevima",
+    num: "02",
     role: "Data Analyst",
     company: "PT Sentra Vidya Utama (SEVIMA)",
     period: "Feb 2025 – Aug 2025",
@@ -36,7 +64,7 @@ const experiences: ExperienceItem[] = [
   },
   {
     id: "telkom",
-    num: "02",
+    num: "03",
     role: "UI/UX Designer",
     company: "Digistar Class — Telkom Indonesia",
     period: "Jul 2024 – Oct 2024",
@@ -53,7 +81,7 @@ const experiences: ExperienceItem[] = [
   },
   {
     id: "gim",
-    num: "03",
+    num: "04",
     role: "Game Designer",
     company: "Ganesha Interactive Media (GIM)",
     period: "Sep 2023 – Nov 2024",
@@ -70,7 +98,7 @@ const experiences: ExperienceItem[] = [
   },
   {
     id: "infinite",
-    num: "04",
+    num: "05",
     role: "Hyper Cloud & AI Participant",
     company: "Infinite Learning Indonesia (IBM Program)",
     period: "Aug 2023 – Jan 2024",
@@ -86,7 +114,7 @@ const experiences: ExperienceItem[] = [
   },
   {
     id: "digistar-club",
-    num: "05",
+    num: "06",
     role: "Creative Rangers",
     company: "Digistar Club ITS",
     period: "Dec 2024 – Mar 2026",
@@ -103,7 +131,7 @@ const experiences: ExperienceItem[] = [
   },
   {
     id: "levelup-community",
-    num: "06",
+    num: "07",
     role: "Community Staff",
     company: "Level UP! Indonesia (Surabaya Chapter)",
     period: "Apr 2024 – Present",
@@ -121,7 +149,7 @@ const experiences: ExperienceItem[] = [
 
 export default function Experience({ theme }: { theme: "dark" | "light" }) {
   const isDark = theme === "dark";
-  const [activeId, setActiveId] = useState<string>("sevima");
+  const [activeId, setActiveId] = useState<string>("cimb-niaga");
 
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
